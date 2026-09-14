@@ -81,10 +81,23 @@ void AColossusGameMode::BeginNextRound()
 
 	if (!ColossusGameState) return;
 
-	const int32 NextRound = ColossusGameState->GetCurrentRound() + 1;
-	
-	if (NextRound > ColossusGameState->GetTotalRounds())
+	if (MatchRules.MatchMode != EColossusMatchMode::Arcade)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("BeginNextRound currently supports Arcade matches only"));
+		return;
+	}
+
+	const int32 EncounterCount = RoundDefinitions.Num();
+	if (EncounterCount == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("BeginNextRound: No round definitions found"));
+		return;
+	}
+
+	const int32 NextRound = ColossusGameState->GetCurrentRound() + 1;
+	if (NextRound > EncounterCount)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("BeginNextRound: No more rounds available"));
 		return;
 	}
 

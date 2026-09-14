@@ -45,6 +45,9 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Colossus|Match")
 	TArray<FColossusRoundDefinition> RoundDefinitions;
 
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Colossus|Match")
+	FColossusMatchRules MatchRules;
+
 private:
 	AColossusGameState* GetColossusGameState() const;
 	AColossusFighterStart* FindFighterStart(int32 SpawnIndex, FName SpawnGroup) const;
