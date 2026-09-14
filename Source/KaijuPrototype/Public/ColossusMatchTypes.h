@@ -70,3 +70,41 @@ struct FColossusMatchRules
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Colossus|Rules")
 	bool bTeamsEnabled = false;
 };
+
+UENUM(BlueprintType)
+enum class EColossusControlType : uint8
+{
+	Human UMETA(DisplayName = "Human"),
+	CPU UMETA(DisplayName = "CPU")
+};
+
+USTRUCT(BlueprintType)
+struct FColossusCompetitorDefinition
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Colossus|Competitor")
+	FName CompetitorId = NAME_None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Colossus|Competitor")
+	TSubclassOf<ABrawlerCharacter> FighterClass = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Colossus|Competitor")
+	EColossusControlType ControlType = EColossusControlType::CPU;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Colossus|Competitor", meta = (ClampMin = "0", UIMin = "0", EditCondition = "ControlType == EColossusControlType::Human", EditConditionHides))
+	int32 PlayerSlot = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Colossus|Competitor", meta = (ClampMin = "-1", UIMin = "-1"))
+	int32 TeamIndex = -1;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Colossus|Competitor", meta = (ClampMin = "0", UIMin = "0"))
+	int32 SpawnIndex = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Colossus|Competitor")
+	FName SpawnGroup = TEXT("Default");
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Colossus|Competitor", meta = (ClampMin = "1.0", UIMin = "1.0"))
+	float StartingHealth = 100.0f;
+
+};
