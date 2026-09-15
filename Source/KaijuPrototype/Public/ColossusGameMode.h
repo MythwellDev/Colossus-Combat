@@ -46,7 +46,7 @@ protected:
 	TArray<FColossusRoundDefinition> RoundDefinitions;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Colossus|Match")
-	FColossusMatchRules MatchRules;
+	FColossusMatchSetup MatchSetup;
 
 private:
 	AColossusGameState* GetColossusGameState() const;

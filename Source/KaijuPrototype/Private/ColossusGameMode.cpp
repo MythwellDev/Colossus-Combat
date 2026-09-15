@@ -81,7 +81,7 @@ void AColossusGameMode::BeginNextRound()
 
 	if (!ColossusGameState) return;
 
-	if (MatchRules.MatchMode != EColossusMatchMode::Arcade)
+	if (MatchSetup.Rules.MatchMode != EColossusMatchMode::Arcade)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("BeginNextRound currently supports Arcade matches only"));
 		return;

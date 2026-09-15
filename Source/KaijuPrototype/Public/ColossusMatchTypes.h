@@ -108,3 +108,15 @@ struct FColossusCompetitorDefinition
 	float StartingHealth = 100.0f;
 
 };
+
+USTRUCT(BlueprintType)
+struct FColossusMatchSetup
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Colossus|Match Setup")
+	FColossusMatchRules Rules;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Colossus|Match Setup")
+	TArray<FColossusCompetitorDefinition> Competitors;
+};
