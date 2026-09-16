@@ -41,6 +41,7 @@ public:
 
 protected:
 	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Colossus|Match")
 	TArray<FColossusRoundDefinition> RoundDefinitions;

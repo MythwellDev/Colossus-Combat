@@ -5,6 +5,7 @@
 #include "ColossusFighterStart.h"
 #include "EngineUtils.h"
 #include "Engine/World.h"
+#include "ColossusGameInstance.h"
 
 
 AColossusGameMode::AColossusGameMode()
@@ -23,6 +24,24 @@ AActor* AColossusGameMode::ChoosePlayerStart_Implementation(AController* Player)
 	}
 
 	return Super::ChoosePlayerStart_Implementation(Player);
+}
+
+void AColossusGameMode::InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage)
+{
+	Super::InitGame(MapName, Options, ErrorMessage);
+	
+	const UColossusGameInstance* ColossusGameInstance = Cast<UColossusGameInstance>(GetGameInstance());
+	
+	if (!ColossusGameInstance || !ColossusGameInstance->HasPendingMatchSetup())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("No pending match setup. Using GameMode defaults."));
+
+		return;
+	}
+
+	MatchSetup = ColossusGameInstance->GetPendingMatchSetup();
+
+	UE_LOG(LogTemp, Log, TEXT("Loaded pending match setup from ColossusGameInstance."));
 }
 
 AColossusFighterStart* AColossusGameMode::FindFighterStart(int32 SpawnIndex, FName SpawnGroup) const
