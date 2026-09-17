@@ -41,7 +41,24 @@ void AColossusGameMode::InitGame(const FString& MapName, const FString& Options,
 
 	MatchSetup = ColossusGameInstance->GetPendingMatchSetup();
 
-	UE_LOG(LogTemp, Log, TEXT("Loaded pending match setup from ColossusGameInstance."));
+	UE_LOG(LogTemp, Log, TEXT("InitGameState could not find ColossusGameState."));
+}
+
+void AColossusGameMode::InitGameState()
+{
+	Super::InitGameState();
+	
+	AColossusGameState* ColossusGameState = GetColossusGameState();
+
+	if (!ColossusGameState)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("InitGameState: ColossusGameState is null"));
+		return;
+	}
+
+	ColossusGameState->SetActiveMatchRules(MatchSetup.Rules);
+
+	UE_LOG(LogTemp, Log, TEXT("Published active match rules to ColossusGameState."));
 }
 
 AColossusFighterStart* AColossusGameMode::FindFighterStart(int32 SpawnIndex, FName SpawnGroup) const

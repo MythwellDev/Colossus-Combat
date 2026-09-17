@@ -39,9 +39,23 @@ void AColossusGameState::SetRoundState(int32 NewCurrentRound, int32 NewTotalRoun
 	BroadcastRoundState();
 }
 
+void AColossusGameState::SetActiveMatchRules(const FColossusMatchRules& NewMatchRules)
+{
+	if (!HasAuthority()) return;
+	
+	ActiveMatchRules = NewMatchRules;
+	
+	OnMatchRulesChanged.Broadcast(ActiveMatchRules);
+}
+
 void AColossusGameState::OnRep_RoundState()
 {
 	BroadcastRoundState();
+}
+
+void AColossusGameState::OnRep_ActiveMatchRules()
+{
+	OnMatchRulesChanged.Broadcast(ActiveMatchRules);
 }
 
 void AColossusGameState::BroadcastRoundState()

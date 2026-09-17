@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameState.h"
+#include "ColossusMatchTypes.h"
 #include "ColossusGameState.generated.h"
 
 UENUM(BlueprintType)
@@ -18,6 +19,8 @@ enum class EColossusRoundPhase : uint8
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FColossusRoundStateChangedSignature, int32, CurrentRound, int32, TotalRounds, EColossusRoundPhase, RoundPhase);
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FColossusMatchRulesChangedSignature, FColossusMatchRules, MatchRules);
+
 UCLASS()
 class KAIJUPROTOTYPE_API AColossusGameState : public AGameState
 {
@@ -30,6 +33,8 @@ public:
 
 	void SetRoundState(int32 NewRound, int32 NewTotalRounds, EColossusRoundPhase NewRoundPhase);
 
+	void SetActiveMatchRules(const FColossusMatchRules& NewMatchRules);
+
 	UFUNCTION(BlueprintPure, Category = "Colossus|Match")
 	int32 GetCurrentRound() const { return CurrentRound; }
 
@@ -39,8 +44,14 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Colossus|Match")
 	EColossusRoundPhase GetRoundPhase() const { return RoundPhase; }
 
+	UFUNCTION(BlueprintPure, Category = "Colossus|Match")
+	FColossusMatchRules GetActiveMatchRules() const { return ActiveMatchRules; }
+
 	UPROPERTY(BlueprintAssignable, Category = "Colossus|Match|Events")
 	FColossusRoundStateChangedSignature OnRoundStateChanged;
+
+	UPROPERTY(BlueprintAssignable, Category = "Colossus|Match|Events")
+	FColossusMatchRulesChangedSignature OnMatchRulesChanged;
 
 protected:
 	UPROPERTY(ReplicatedUsing = OnRep_RoundState, VisibleAnywhere, Category = "Colossus|Match")
@@ -51,9 +62,15 @@ protected:
 	
 	UPROPERTY(ReplicatedUsing = OnRep_RoundState, VisibleAnywhere, Category = "Colossus|Match")
 	EColossusRoundPhase RoundPhase;
+
+	UPROPERTY(ReplicatedUsing = OnRep_ActiveMatchRules, EditDefaultsOnly, Category = "Colossus|Match")
+	FColossusMatchRules ActiveMatchRules;
 	
 	UFUNCTION()
 	void OnRep_RoundState();
+
+	UFUNCTION()
+	void OnRep_ActiveMatchRules();
 
 private:
 	void BroadcastRoundState();
