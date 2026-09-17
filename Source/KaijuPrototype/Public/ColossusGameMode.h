@@ -47,6 +47,8 @@ protected:
 	virtual void PostLogin(APlayerController* NewPlayer) override;
 	virtual void Logout(AController* Exiting) override;
 
+	virtual UClass* GetDefaultPawnClassForController_Implementation(AController* InController) override;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Colossus|Match")
 	TArray<FColossusRoundDefinition> RoundDefinitions;
 
@@ -60,4 +62,5 @@ private:
 	TMap<AController*, int32> AssignedPlayerSlots;
 	int32 FindAvailablePlayerSlot() const;
 	const FColossusCompetitorDefinition* FindHumanCompetitorByPlayerSlot(int32 PlayerSlot) const;
+	int32 GetOrAssignPlayerSlot(AController* Player);
 };

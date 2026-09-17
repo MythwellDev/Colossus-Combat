@@ -15,12 +15,13 @@ AColossusGameMode::AColossusGameMode()
 
 AActor* AColossusGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
-	int32 PlayerSlot = 0;
-
-	if (const int32* AssignedSlot =	AssignedPlayerSlots.Find(Player))
+	if (!Player)
 	{
-		PlayerSlot = *AssignedSlot;
+		UE_LOG(LogTemp, Warning, TEXT("ChoosePlayerStart called with null Player."));
+		return Super::ChoosePlayerStart_Implementation(Player);
 	}
+
+	const int32 PlayerSlot = GetOrAssignPlayerSlot(Player);
 
 	const FColossusCompetitorDefinition* Competitor = FindHumanCompetitorByPlayerSlot(PlayerSlot);
 
@@ -87,15 +88,7 @@ void AColossusGameMode::PostLogin(APlayerController* NewPlayer)
 {
 	Super::PostLogin(NewPlayer);
 
-	if(!NewPlayer || AssignedPlayerSlots.Contains(NewPlayer))
-	{
-		return;
-	}
-
-	const int32 PlayerSlot = FindAvailablePlayerSlot();
-	AssignedPlayerSlots.Add(NewPlayer, PlayerSlot);
-
-	UE_LOG(LogTemp, Log, TEXT("Assigned player controller to match slot %d."), PlayerSlot);
+	GetOrAssignPlayerSlot(NewPlayer);
 }
 
 void AColossusGameMode::Logout(AController* Exiting)
@@ -103,6 +96,28 @@ void AColossusGameMode::Logout(AController* Exiting)
 	AssignedPlayerSlots.Remove(Exiting);
 
 	Super::Logout(Exiting);
+}
+
+UClass* AColossusGameMode::GetDefaultPawnClassForController_Implementation(AController* InController)
+{
+	if (!InController)
+	{
+		return Super::GetDefaultPawnClassForController_Implementation(InController);
+	}
+
+	const int32 PlayerSlot = GetOrAssignPlayerSlot(InController);
+
+	const FColossusCompetitorDefinition* Competitor = FindHumanCompetitorByPlayerSlot(PlayerSlot);
+
+	if (Competitor && Competitor->FighterClass)
+	{
+		UE_LOG(LogTemp, Log, TEXT("Using configured fighter class %s for competitor %s in player slot %d."), *Competitor->FighterClass->GetName(), *Competitor->CompetitorId.ToString(), PlayerSlot);
+		return Competitor->FighterClass.Get();
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("No configured fighter class for player slot %d. Using default pawn class."), PlayerSlot);
+	
+	return Super::GetDefaultPawnClassForController_Implementation(InController);
 }
 
 int32 AColossusGameMode::FindAvailablePlayerSlot() const
@@ -141,6 +156,22 @@ const FColossusCompetitorDefinition* AColossusGameMode::FindHumanCompetitorByPla
 		return Competitor.ControlType == EColossusControlType::Human && Competitor.PlayerSlot == PlayerSlot;
 	}
 	);
+}
+
+int32 AColossusGameMode::GetOrAssignPlayerSlot(AController* Player)
+{
+	if (!Player) return INDEX_NONE;
+
+	if (const int32* ExistingSlot = AssignedPlayerSlots.Find(Player))
+	{
+		return *ExistingSlot;
+	}
+
+	const int32 NewPlayerSlot = FindAvailablePlayerSlot();
+	AssignedPlayerSlots.Add(Player, NewPlayerSlot);
+
+	UE_LOG(LogTemp, Log, TEXT("Assigned player controller to match slot %d."), NewPlayerSlot);
+	return NewPlayerSlot;
 }
 
 AColossusFighterStart* AColossusGameMode::FindFighterStart(int32 SpawnIndex, FName SpawnGroup) const
