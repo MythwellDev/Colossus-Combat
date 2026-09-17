@@ -44,6 +44,9 @@ protected:
 	virtual void InitGame(const FString& MapName, const FString& Options, FString& ErrorMessage) override;
 	virtual void InitGameState() override;
 
+	virtual void PostLogin(APlayerController* NewPlayer) override;
+	virtual void Logout(AController* Exiting) override;
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Colossus|Match")
 	TArray<FColossusRoundDefinition> RoundDefinitions;
 
@@ -53,4 +56,8 @@ protected:
 private:
 	AColossusGameState* GetColossusGameState() const;
 	AColossusFighterStart* FindFighterStart(int32 SpawnIndex, FName SpawnGroup) const;
+
+	TMap<AController*, int32> AssignedPlayerSlots;
+	int32 FindAvailablePlayerSlot() const;
+	const FColossusCompetitorDefinition* FindHumanCompetitorByPlayerSlot(int32 PlayerSlot) const;
 };

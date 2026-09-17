@@ -15,12 +15,33 @@ AColossusGameMode::AColossusGameMode()
 
 AActor* AColossusGameMode::ChoosePlayerStart_Implementation(AController* Player)
 {
-	if (!Player) return nullptr;
-	AColossusFighterStart* FighterStart = FindFighterStart(0, FName(TEXT("Default")));
-	
-	if (FighterStart)
+	int32 PlayerSlot = 0;
+
+	if (const int32* AssignedSlot =	AssignedPlayerSlots.Find(Player))
 	{
-		return FighterStart;
+		PlayerSlot = *AssignedSlot;
+	}
+
+	const FColossusCompetitorDefinition* Competitor = FindHumanCompetitorByPlayerSlot(PlayerSlot);
+
+	if (Competitor)
+	{
+		AColossusFighterStart* FighterStart = FindFighterStart(Competitor->SpawnIndex, Competitor->SpawnGroup);
+
+		if (FighterStart)
+		{
+			UE_LOG(LogTemp, Log, TEXT("Using configured Fighter Start for competitor %s in player slot %d."), *Competitor->CompetitorId.ToString(), PlayerSlot);
+
+			return FighterStart;
+		}
+
+		UE_LOG(LogTemp, Warning, TEXT("No Fighter Start found for competitor %s at index %d in group %s."),	*Competitor->CompetitorId.ToString(), Competitor->SpawnIndex, *Competitor->SpawnGroup.ToString());
+	}
+
+	// Preserve the existing player spawn if no competitor is configured.
+	if (AColossusFighterStart* DefaultStart = FindFighterStart(0, FName(TEXT("Default"))))
+	{
+		return DefaultStart;
 	}
 
 	return Super::ChoosePlayerStart_Implementation(Player);
@@ -57,8 +78,69 @@ void AColossusGameMode::InitGameState()
 	}
 
 	ColossusGameState->SetActiveMatchRules(MatchSetup.Rules);
+	ColossusGameState->SetActiveCompetitors(MatchSetup.Competitors);
 
-	UE_LOG(LogTemp, Log, TEXT("Published active match rules to ColossusGameState."));
+	UE_LOG(LogTemp, Log, TEXT("Published active match rules with %d configured competitors to ColossusGameState."), MatchSetup.Competitors.Num());
+}
+
+void AColossusGameMode::PostLogin(APlayerController* NewPlayer)
+{
+	Super::PostLogin(NewPlayer);
+
+	if(!NewPlayer || AssignedPlayerSlots.Contains(NewPlayer))
+	{
+		return;
+	}
+
+	const int32 PlayerSlot = FindAvailablePlayerSlot();
+	AssignedPlayerSlots.Add(NewPlayer, PlayerSlot);
+
+	UE_LOG(LogTemp, Log, TEXT("Assigned player controller to match slot %d."), PlayerSlot);
+}
+
+void AColossusGameMode::Logout(AController* Exiting)
+{
+	AssignedPlayerSlots.Remove(Exiting);
+
+	Super::Logout(Exiting);
+}
+
+int32 AColossusGameMode::FindAvailablePlayerSlot() const
+{
+	TSet<int32> UsedSlots;
+	for (const TPair<AController*, int32>& Assignment : AssignedPlayerSlots)
+	{
+		if (IsValid(Assignment.Key))
+		{
+			UsedSlots.Add(Assignment.Value);
+		}
+	}
+
+	for (const FColossusCompetitorDefinition& Competitor : MatchSetup.Competitors)
+	{
+		if (Competitor.ControlType == EColossusControlType::Human && !UsedSlots.Contains(Competitor.PlayerSlot))
+		{
+			return Competitor.PlayerSlot;
+		}
+	}
+
+	int32 FallbackSlot = 0;
+
+	while (UsedSlots.Contains(FallbackSlot))
+	{
+		FallbackSlot++;
+	}
+	
+	return FallbackSlot;
+}
+
+const FColossusCompetitorDefinition* AColossusGameMode::FindHumanCompetitorByPlayerSlot(int32 PlayerSlot) const
+{
+	return MatchSetup.Competitors.FindByPredicate([PlayerSlot](const FColossusCompetitorDefinition& Competitor)
+	{
+		return Competitor.ControlType == EColossusControlType::Human && Competitor.PlayerSlot == PlayerSlot;
+	}
+	);
 }
 
 AColossusFighterStart* AColossusGameMode::FindFighterStart(int32 SpawnIndex, FName SpawnGroup) const
@@ -92,6 +174,7 @@ ABrawlerCharacter* AColossusGameMode::SpawnCPUFighterAtIndex(TSubclassOf<ABrawle
 		UE_LOG(LogTemp, Warning, TEXT("SpawnCPUFighterAtIndex: Invalid FighterStart"));
 		return nullptr;
 	}
+
 	FActorSpawnParameters SpawnParameters;
 	SpawnParameters.Owner = this;
 	SpawnParameters.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;

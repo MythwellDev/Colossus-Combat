@@ -18,6 +18,13 @@ void AColossusGameState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& O
 	DOREPLIFETIME(AColossusGameState, CurrentRound);
 	DOREPLIFETIME(AColossusGameState, TotalRounds);
 	DOREPLIFETIME(AColossusGameState, RoundPhase);
+	DOREPLIFETIME(AColossusGameState, ActiveCompetitors);
+}
+
+void AColossusGameState::SetActiveCompetitors(const TArray<FColossusCompetitorDefinition>& NewCompetitors)
+{
+	if (!HasAuthority()) return;
+	ActiveCompetitors = NewCompetitors;
 }
 
 void AColossusGameState::SetRoundState(int32 NewCurrentRound, int32 NewTotalRounds, EColossusRoundPhase NewRoundPhase)

@@ -35,6 +35,11 @@ public:
 
 	void SetActiveMatchRules(const FColossusMatchRules& NewMatchRules);
 
+	void SetActiveCompetitors(const TArray<FColossusCompetitorDefinition>& NewCompetitors);
+
+	UFUNCTION(BlueprintPure, Category = "Colossus|Match")
+	TArray<FColossusCompetitorDefinition> GetActiveCompetitors() const { return ActiveCompetitors; }
+
 	UFUNCTION(BlueprintPure, Category = "Colossus|Match")
 	int32 GetCurrentRound() const { return CurrentRound; }
 
@@ -65,6 +70,9 @@ protected:
 
 	UPROPERTY(ReplicatedUsing = OnRep_ActiveMatchRules, EditDefaultsOnly, Category = "Colossus|Match")
 	FColossusMatchRules ActiveMatchRules;
+
+	UPROPERTY(Replicated, VisibleAnywhere, Category = "Colossus|Match")
+	TArray<FColossusCompetitorDefinition> ActiveCompetitors;
 	
 	UFUNCTION()
 	void OnRep_RoundState();
