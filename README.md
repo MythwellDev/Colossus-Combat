@@ -1,4 +1,4 @@
-# Monster Brawler
+# Colossus Combat
 
 A solo-developed Unreal Engine 5 gameplay prototype showcasing modular combat systems built in C++ and Blueprint.
 
